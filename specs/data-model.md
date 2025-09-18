@@ -26,6 +26,7 @@ This document defines the foundational data models for the Albums web app, based
 | user_id     | string    | Owner's Cognito user ID                     |
 | name        | string    | Album name (max 100 chars, safe chars only) |
 | description | string    | Album description (optional)                |
+| image_count | integer   | Number of images in the album               |
 | created_at  | datetime  | Creation timestamp                          |
 | updated_at  | datetime  | Last updated timestamp                      |
 

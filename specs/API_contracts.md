@@ -51,6 +51,7 @@ This document defines the REST API endpoints for the Albums web app, based on th
   "user_id": "string",
   "name": "string",
   "description": "string",
+  "image_count": "integer",
   "created_at": "datetime",
   "updated_at": "datetime"
 }
