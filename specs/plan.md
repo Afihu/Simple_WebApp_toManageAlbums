@@ -36,7 +36,7 @@ A simple web app for users to manage photo albums and images, with CRUD operatio
 
 **2. CORS (Cross-Origin Resource Sharing)**
 - The API Gateway will be configured to allow CORS from the frontend domain to enable SPA interactions. On the API Gateway, set CORS headers:
-    - `Access-Control-Allow-Origin: *` (for public APIs) or your frontend’s domain (for more security)
+    - `Access-Control-Allow-Origin: *` (for public APIs) or the frontend’s domain (for more security)
     - `Access-Control-Allow-Methods: GET, POST, PUT, DELETE`
     - `Access-Control-Allow-Headers: Content-Type, Authorization`
 
@@ -46,13 +46,20 @@ A simple web app for users to manage photo albums and images, with CRUD operatio
 **4. S3 Bucket Policies**
 - The bucket can only be accessed by the Lambda functions and not publicly. Use bucket policies to restrict access.
 
-**5. Image Validation**
+**5. Image Upload/Download Architecture**
+- Use presigned URLs for S3 operations to avoid handling large files through Lambda:
+  - Upload workflow: Generate presigned PUT URL → Client uploads directly to S3 → Confirm completion
+  - Download workflow: Generate presigned GET URL → Client downloads directly from S3
+  - Presigned URLs expire after 15 minutes for security
+  - Lambda only handles metadata operations and URL generation
+
+**6. Image Validation**
 - To prevent malicious files, the following checks will be implemented:
   - Only allow standard image formats (e.g., JPEG, PNG, GIF).
+  - Validate content type and size limits before generating upload URLs.
   - Reject SVG uploads, or strictly sanitize them.
   - Always serve images with the correct Content-Type header.
   - Do not process or display images using libraries with known vulnerabilities.
-  - If possible, scan images for malware (Lambda with ClamAV).
 
 ---
 
@@ -84,6 +91,281 @@ A simple web app for users to manage photo albums and images, with CRUD operatio
 ### Documentation
 - API docs in OpenAPI format will be created to act as a contract and reference for AI agents.
 - A simple README will be mocked up, but the detailed version might only be available in the later stages.
+
+---
+
+### Frontend Deployment: S3 + CloudFront Architecture
+
+#### Overview
+The frontend will be deployed as a static website using AWS S3 for hosting and CloudFront for global content delivery. This provides a cost-effective, scalable solution with excellent performance and built-in HTTPS support.
+
+#### S3 Static Website Setup
+
+**1. S3 Bucket Configuration**
+```bash
+# Bucket naming convention: {project-name}-frontend-{environment}
+# Example: albums-app-frontend-prod
+aws s3 mb s3://albums-app-frontend-prod --region ap-southeast-1
+```
+
+**2. Bucket Policy for Public Read Access**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::albums-app-frontend-prod/*"
+    }
+  ]
+}
+```
+
+**3. Static Website Configuration**
+```bash
+aws s3 website s3://albums-app-frontend-prod \
+  --index-document index.html \
+  --error-document index.html  # SPA routing fallback
+```
+
+#### Build and Deployment Process
+
+**1. Production Build**
+```bash
+cd frontend
+npm run build  # Generates optimized production build in dist/
+```
+
+**2. Deploy to S3**
+```bash
+# Sync build files to S3 bucket
+aws s3 sync dist/ s3://albums-app-frontend-prod \
+  --delete \
+  --cache-control "public,max-age=31536000" \
+  --exclude "index.html" \
+  --exclude "*.json"
+
+# Upload index.html with shorter cache control for updates
+aws s3 cp dist/index.html s3://albums-app-frontend-prod/ \
+  --cache-control "public,max-age=3600"
+```
+
+#### CloudFront Distribution Setup
+
+**1. Distribution Configuration**
+```json
+{
+  "CallerReference": "albums-app-cloudfront-2025",
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "S3-albums-app-frontend",
+        "DomainName": "albums-app-frontend-prod.s3.ap-southeast-1.amazonaws.com",
+        "S3OriginConfig": {
+          "OriginAccessIdentity": ""
+        }
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "S3-albums-app-frontend",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "Compress": true,
+    "CachePolicyId": "managed-CachingOptimized"
+  },
+  "Comment": "Albums App Frontend Distribution",
+  "Enabled": true,
+  "PriceClass": "PriceClass_100"  # Use only North America and Europe for cost savings
+}
+```
+
+**2. Custom Error Pages for SPA Routing**
+```json
+{
+  "CustomErrorResponses": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "ErrorCode": 404,
+        "ResponsePagePath": "/index.html",
+        "ResponseCode": "200",
+        "ErrorCachingMinTTL": 300
+      }
+    ]
+  }
+}
+```
+
+**3. Security Headers via Lambda@Edge (Optional)**
+```javascript
+// Lambda@Edge function for security headers
+exports.handler = (event, context, callback) => {
+    const response = event.Records[0].cf.response;
+    const headers = response.headers;
+
+    headers['strict-transport-security'] = [{
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubdomains; preload'
+    }];
+    
+    headers['content-security-policy'] = [{
+        key: 'Content-Security-Policy',
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cmojmdhu9a.execute-api.ap-southeast-1.amazonaws.com"
+    }];
+
+    callback(null, response);
+};
+```
+
+#### Domain and SSL Configuration
+
+**1. Custom Domain Setup (Optional)**
+```bash
+# If using custom domain like albums.example.com
+# 1. Request SSL certificate in us-east-1 (required for CloudFront)
+aws acm request-certificate \
+  --domain-name albums.example.com \
+  --validation-method DNS \
+  --region us-east-1
+
+# 2. Add domain to CloudFront distribution
+# 3. Update Route 53 DNS records
+```
+
+#### Environment Configuration
+
+**1. Build-time Environment Variables**
+```javascript
+// vite.config.ts - Environment-specific API URLs
+export default defineConfig({
+  define: {
+    __API_BASE_URL__: JSON.stringify(
+      process.env.NODE_ENV === 'production' 
+        ? 'https://cmojmdhu9a.execute-api.ap-southeast-1.amazonaws.com/Prod'
+        : 'https://cmojmdhu9a.execute-api.ap-southeast-1.amazonaws.com/Dev'
+    )
+  }
+});
+```
+
+**2. Update API Configuration**
+```javascript
+// src/config/api.js - Use build-time variables
+export const API_BASE_URL = typeof __API_BASE_URL__ !== 'undefined' 
+  ? __API_BASE_URL__ 
+  : 'https://cmojmdhu9a.execute-api.ap-southeast-1.amazonaws.com/Dev';
+```
+
+#### Deployment Automation
+
+**1. Simple Deployment Script**
+```bash
+#!/bin/bash
+# deploy-frontend.sh
+
+set -e
+
+echo "Building frontend..."
+cd frontend
+npm run build
+
+echo "Deploying to S3..."
+aws s3 sync dist/ s3://albums-app-frontend-prod \
+  --delete \
+  --cache-control "public,max-age=31536000" \
+  --exclude "index.html"
+
+aws s3 cp dist/index.html s3://albums-app-frontend-prod/ \
+  --cache-control "public,max-age=3600"
+
+echo "Invalidating CloudFront cache..."
+aws cloudfront create-invalidation \
+  --distribution-id E1234567890123 \
+  --paths "/*"
+
+echo "Deployment completed!"
+```
+
+**2. GitHub Actions Workflow (Future Enhancement)**
+```yaml
+name: Deploy Frontend
+on:
+  push:
+    branches: [main]
+    paths: [frontend/**]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      
+      - name: Build
+        run: cd frontend && npm run build
+      
+      - name: Deploy to S3
+        run: ./scripts/deploy-frontend.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+#### Cost Optimization
+
+**1. S3 Storage Classes**
+- Use Standard storage class for active files
+- Consider Intelligent Tiering for automatic optimization
+
+**2. CloudFront Pricing**
+- Use PriceClass_100 (North America & Europe only) for cost savings
+- Monitor usage and adjust based on user geography
+
+**3. Cache Optimization**
+- Long cache times (1 year) for static assets with versioned filenames
+- Short cache times (1 hour) for index.html to enable quick updates
+- Enable compression for text files
+
+#### Monitoring and Maintenance
+
+**1. CloudWatch Metrics**
+- Monitor CloudFront request count and error rates
+- Set up alarms for high error rates or unusual traffic patterns
+
+**2. Access Logging**
+```json
+{
+  "Logging": {
+    "Enabled": true,
+    "IncludeCookies": false,
+    "Bucket": "albums-app-logs.s3.amazonaws.com",
+    "Prefix": "cloudfront-logs/"
+  }
+}
+```
+
+**3. Regular Security Updates**
+- Keep dependencies updated in package.json
+- Review and update Content Security Policy headers
+- Monitor AWS Security Bulletins for CloudFront updates
+
+#### Rollback Strategy
+1. Keep previous build artifacts in S3 with versioned prefixes
+2. Quick rollback by re-uploading previous version
+3. CloudFront invalidation to clear cache after rollback
+
+This architecture provides a robust, scalable, and cost-effective solution for hosting the Albums app frontend with global reach and excellent performance.
 
 
 
@@ -156,16 +438,17 @@ frontend/
 | Consideration | Why | Alternative |
 |---------------|-----|-------------|
 | Omitting FastAPI | FastAPI requires an adapter (such as Magnum) to work with Lambda. The same is applied to Flask. | Use basic Python for AWS Lambda's basis of event-driven. |
-| Using DynamoDB | DynamoDB is a fully managed NoSQL database, has a free tier (important), and can be used to store metadata and user quota. | RDS requires upfront cost. Storing metadata in a JSON file in S3 is possible but less efficient. |
+| Using DynamoDB | DynamoDB is a fully managed NoSQL database, has a free tier (important), and can be used to store metadata and user quota. | RDS requires upfront/maintenance cost. Storing metadata in a JSON file in S3 is possible but less efficient. |
 | Using S3 + CloudFront for frontend | S3 + CloudFront is more complex than serving the frontend directly through Lambda, but it is a cost-effective way to host static websites. | More complex setups (e.g., Amplify) or exposing the S3 bucket if served directly or using only generated HTML from backend. |
 | Using React and JavaScript | As we have moved to S3 static hosting, we can afford to use React for a modern SPA experience. | Vanilla JS or a simpler framework (e.g., Vue) could be used, but React is widely known and has good community support. |
+| Using Presigned URLs for S3 uploads/downloads/displaying | Presigned URLs allow secure, temporary access to S3 objects without exposing AWS credentials. | Handling files through API Gateway and Lambda is not efficient and we have to deal with base64 encoding/decoding. |
 
 ## Progress Tracking
 **Phase Status**:
 - [x] Phase 0: Research complete
 - [ ] Phase 1: Design complete
 - [ ] Phase 2: Task planning complete
-- [ ] Phase 3: Tasks generated
+- [X] Phase 3: Tasks generated
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 

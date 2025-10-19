@@ -1,158 +1,475 @@
 {
-  "info": {
-    "_postman_id": "albums-api-contract-tests",
-    "name": "Albums API Contract Tests",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "GET /albums",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/albums", "host": ["{{baseUrl}}"], "path": ["albums"] }
-      },
-      "response": []
-    },
-    {
-      "name": "POST /albums",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" },
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Test Album\",\n  \"description\": \"A test album\"\n}"
-        },
-        "url": { "raw": "{{baseUrl}}/albums", "host": ["{{baseUrl}}"], "path": ["albums"] }
-      },
-      "response": []
-    },
-    {
-      "name": "GET /albums/{album_id}",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/albums/:album_id", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id"] }
-      },
-      "response": []
-    },
-    {
-      "name": "PUT /albums/{album_id}",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" },
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Updated Album\",\n  \"description\": \"Updated description\"\n}"
-        },
-        "url": { "raw": "{{baseUrl}}/albums/:album_id", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id"] }
-      },
-      "response": []
-    },
-    {
-      "name": "DELETE /albums/{album_id}",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/albums/:album_id", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id"] }
-      },
-      "response": []
-    },
-    {
-      "name": "GET /albums/{album_id}/images",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/albums/:album_id/images", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id", "images"] }
-      },
-      "response": []
-    },
-    {
-      "name": "POST /albums/{album_id}/images",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" },
-          { "key": "Content-Type", "value": "multipart/form-data", "type": "text" }
-        ],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            { "key": "file", "type": "file", "src": "" },
-            { "key": "name", "type": "text", "value": "Test Image" },
-            { "key": "description", "type": "text", "value": "A test image" }
-          ]
-        },
-        "url": { "raw": "{{baseUrl}}/albums/:album_id/images", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id", "images"] }
-      },
-      "response": []
-    },
-    {
-      "name": "GET /albums/{album_id}/images/{image_id}",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/albums/:album_id/images/:image_id", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id", "images", ":image_id"] }
-      },
-      "response": []
-    },
-    {
-      "name": "PUT /albums/{album_id}/images/{image_id}",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" },
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Updated Image\",\n  \"description\": \"Updated description\"\n}"
-        },
-        "url": { "raw": "{{baseUrl}}/albums/:album_id/images/:image_id", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id", "images", ":image_id"] }
-      },
-      "response": []
-    },
-    {
-      "name": "DELETE /albums/{album_id}/images/{image_id}",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/albums/:album_id/images/:image_id", "host": ["{{baseUrl}}"], "path": ["albums", ":album_id", "images", ":image_id"] }
-      },
-      "response": []
-    },
-    {
-      "name": "GET /quota",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
-        ],
-        "url": { "raw": "{{baseUrl}}/quota", "host": ["{{baseUrl}}"], "path": ["quota"] }
-      },
-      "response": []
-    }
-  ],
-  "variable": [
-    { "key": "baseUrl", "value": "http://localhost:4566" },
-    { "key": "jwt", "value": "<insert-valid-jwt-here>" }
-  ]
+	"info": {
+		"_postman_id": "81124d94-c46b-45ac-89ac-f6b12db1e876",
+		"name": "Albums API Contract Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45919414",
+		"_collection_link": "https://afihu-3109067.postman.co/workspace/Afihu's-Workspace~5bc438f8-3027-4ba5-8b5d-fee04800b912/collection/45919414-81124d94-c46b-45ac-89ac-f6b12db1e876?action=share&source=collection_link&creator=45919414"
+	},
+	"item": [
+		{
+			"name": "GET /albums",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/albums",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST /albums",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Test Album\",\n  \"description\": \"A test album\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/albums",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET /albums/{album_id}",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT /albums/{album_id}",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Updated Album\",\n  \"description\": \"Updated description\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE /albums/{album_id}",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET /albums/{album_id}/images",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id/images",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id",
+						"images"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST /albums/{album_id}/images",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"value": "",
+							"type": "file"
+						},
+						{
+							"key": "name",
+							"value": "Test Image",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "A test image",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id/images",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id",
+						"images"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET /albums/{album_id}/images/{image_id}",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id/images/:image_id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id",
+						"images",
+						":image_id"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						},
+						{
+							"key": "image_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT /albums/{album_id}/images/{image_id}",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Updated Image\",\n  \"description\": \"Updated description\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id/images/:image_id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id",
+						"images",
+						":image_id"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						},
+						{
+							"key": "image_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE /albums/{album_id}/images/{image_id}",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/albums/:album_id/images/:image_id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"albums",
+						":album_id",
+						"images",
+						":image_id"
+					],
+					"variable": [
+						{
+							"key": "album_id"
+						},
+						{
+							"key": "image_id"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET /quota",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/quota",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"quota"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "client_authentication",
+				"value": "body",
+				"type": "string"
+			},
+			{
+				"key": "authUrl",
+				"value": "https://ap-southeast-1ukwmlr9zx.auth.ap-southeast-1.amazoncognito.com/oauth2/authorize",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "https://ap-southeast-1ukwmlr9zx.auth.ap-southeast-1.amazoncognito.com/oauth2/token",
+				"type": "string"
+			},
+			{
+				"key": "scope",
+				"value": "email openid phone",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{ClientID}}",
+				"type": "string"
+			},
+			{
+				"key": "useBrowser",
+				"value": true,
+				"type": "boolean"
+			},
+			{
+				"key": "redirect_uri",
+				"value": "http://localhost",
+				"type": "string"
+			},
+			{
+				"key": "grant_type",
+				"value": "authorization_code",
+				"type": "string"
+			},
+			{
+				"key": "tokenName",
+				"value": "testuser",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:4566"
+		},
+		{
+			"key": "ClientID",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "default"
+		}
+	]
 }

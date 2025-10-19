@@ -1,0 +1,11 @@
+*.zip
+
+*.pyc
+
+*.postman_collection.json
+
+*.env
+
+/.serena
+
+*.png
